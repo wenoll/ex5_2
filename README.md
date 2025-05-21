@@ -304,7 +304,7 @@ plt.show()
     <Figure size 640x480 with 0 Axes>
 
 
-# 绘制图像验证模型的性能
+# 上传石头剪头布的图片进行推测
 ```python
 import numpy as np
 
