@@ -1,4 +1,3 @@
-# TensorFlow训练石头剪刀布数据集
 ```python
 import os
 import zipfile
@@ -101,7 +100,7 @@ for i, img_path in enumerate(next_rock+next_paper+next_scissors):
 
 
 ![png](output_2_5.png)
-   
+  
 
 ```python
 import tensorflow as tf
@@ -177,6 +176,8 @@ model.save("rps.h5")
 </pre>
 
 
+
+
 <pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
 ┃<span style="font-weight: bold"> Layer (type)                    </span>┃<span style="font-weight: bold"> Output Shape           </span>┃<span style="font-weight: bold">       Param # </span>┃
 ┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━┩
@@ -207,18 +208,12 @@ model.save("rps.h5")
 </pre>
 
 
-
-
 <pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="font-weight: bold"> Total params: </span><span style="color: #00af00; text-decoration-color: #00af00">3,473,475</span> (13.25 MB)
 </pre>
 
 
-
-
 <pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="font-weight: bold"> Trainable params: </span><span style="color: #00af00; text-decoration-color: #00af00">3,473,475</span> (13.25 MB)
 </pre>
-
-
 
 
 <pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="font-weight: bold"> Non-trainable params: </span><span style="color: #00af00; text-decoration-color: #00af00">0</span> (0.00 B)
@@ -281,11 +276,6 @@ model.save("rps.h5")
     Epoch 25/25
     [1m20/20[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m42s[0m 2s/step - accuracy: 0.9777 - loss: 0.0716 - val_accuracy: 0.8333 - val_loss: 0.6058
 
-
-    WARNING:absl:You are saving your model as an HDF5 file via `model.save()` or `keras.saving.save_model(model)`. This file format is considered legacy. We recommend using instead the native Keras format, e.g. `model.save('my_model.keras')` or `keras.saving.save_model(model, 'my_model.keras')`. 
-
-
-
 ```python
 import matplotlib.pyplot as plt
 acc = history.history['accuracy']
@@ -311,4 +301,92 @@ plt.show()
 
 
     <Figure size 640x480 with 0 Axes>
+
+
+
+```python
+import numpy as np
+
+# 1. 加载训练好的模型
+model = tf.keras.models.load_model("rps.h5")
+
+# 2. 定义类别标签（需与训练时的文件夹名称一致）
+class_names = ['rock', 'paper', 'scissors']  # 对应文件夹名
+
+# 3. 定义图片预处理函数
+def predict_image(image_path):
+    # 加载图片并调整尺寸
+    img = image.load_img(image_path, target_size=(150, 150))
+    # 转换为数组（形状：(150, 150, 3)）
+    img_array = image.img_to_array(img)
+    # 扩展维度以匹配模型输入要求（形状：(1, 150, 150, 3)）
+    img_array = np.expand_dims(img_array, axis=0)
+    # 归一化（与训练时的 rescale 一致）
+    img_array /= 255.0
+
+    # 4. 模型预测
+    predictions = model.predict(img_array)
+    # 获取概率最大的类别索引
+    predicted_class_index = np.argmax(predictions[0])
+    # 获取预测概率
+    confidence = np.max(predictions[0])
+    # 映射到类别名称
+    predicted_class = class_names[predicted_class_index]
+
+    return predicted_class, confidence
+
+# 5. 使用示例：预测单张图片
+image_path = "D:/AndroidStudioProjects/Jupyter/test/output_2_4.png"  # 替换为你的图片路径
+predicted_class, confidence = predict_image(image_path)
+
+print(f"预测结果：{predicted_class}，置信度：{confidence:.4f}")
+```
+
+
+    [1m1/1[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 94ms/step
+    预测结果：scissors，置信度：0.9993
+
+```python
+import matplotlib.pyplot as plt
+
+plt.rcParams['font.sans-serif'] = ['SimHei']  # 设置中文字体
+plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
+# 批量预测函数
+def predict_multiple_images(image_paths):
+    results = []
+    for path in image_paths:
+        class_name, conf = predict_image(path)
+        results.append((path.split("/")[-1], class_name, conf))
+    return results
+
+# 示例：预测多个图片并可视化
+image_paths = [
+    "D:/AndroidStudioProjects/Jupyter/test/output_2_4.png",
+    "D:/AndroidStudioProjects/Jupyter/test/output_2_1.png",
+    "D:/AndroidStudioProjects/Jupyter/test/output_2_3.png"
+]
+
+results = predict_multiple_images(image_paths)
+
+# 可视化结果
+plt.figure(figsize=(12, 6))
+for i, (filename, class_name, conf) in enumerate(results):
+    plt.subplot(1, 3, i+1)
+    img = image.load_img(image_paths[i])
+    plt.imshow(img)
+    plt.title(f"预测：{class_name}\n置信度：{conf:.2f}")
+    plt.axis('off')
+plt.tight_layout()
+plt.show()
+```
+
+    [1m1/1[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 33ms/step
+    [1m1/1[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 39ms/step
+    [1m1/1[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 35ms/step
+
+
+
+
+![png](output_8_1.png)
+    
 
