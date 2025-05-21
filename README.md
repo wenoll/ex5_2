@@ -1,3 +1,4 @@
+# TensorFlow 石头剪刀布模型生成
 ```python
 import os
 import zipfile
@@ -303,7 +304,7 @@ plt.show()
     <Figure size 640x480 with 0 Axes>
 
 
-
+# 绘制图像验证模型的性能
 ```python
 import numpy as np
 
